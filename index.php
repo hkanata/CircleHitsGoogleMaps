@@ -4,7 +4,6 @@
     hkanata@gmail.com
     
     Hits beetween circles
-
 -->
 <style>
     body {margin: 0; padding: 0}
@@ -19,7 +18,7 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
 <script src="http://maps.googleapis.com/maps/api/js?sensor=false&extension=.js"></script>
 <div id="note">
-    <span id="title">HITS Circles - opba.com.br</span>
+    <span id="title">Hits Circle - opba.com.br</span>
     <hr />
     <span class="info">
 	Marker <strong>A</strong>: <span id="a" class="bool"></span>
@@ -34,9 +33,8 @@
 <script>
     window.onload = function init() {
 	var
-	    contentCenter = '<span class="infowin">Center Marker (draggable)</span>',
-	    contentA = '<span class="infowin">Marker A (draggable)</span>',
-	    contentB = '<span class="infowin">Marker B (draggable)</span>';
+	    contentCenter = '<span class="infowin">Center Marker (draggable)</span>';
+	var circle, circle1;
 	var
 	    latLngCenter = new google.maps.LatLng(-19.859618, -43.969575),
 	    
@@ -55,26 +53,14 @@
 		map: map,
 		draggable: true
 	    }),
-	    infoCenter = new google.maps.InfoWindow({
-		content: contentCenter
-	    }),
-	    markerA = new google.maps.Marker({
+	    markerCenter1 = new google.maps.Marker({
 		position: latLngA,
 		title: 'Location',
 		map: map,
 		draggable: true
 	    }),
-	    infoA = new google.maps.InfoWindow({
-		content: contentA
-	    }),
-	    markerB = new google.maps.Marker({
-		position: latLngB,
-		title: 'Location',
-		map: map,
-		draggable: true
-	    }),
-	    infoB = new google.maps.InfoWindow({
-		content: contentB
+	    infoCenter = new google.maps.InfoWindow({
+		content: contentCenter
 	    }),
 	    circle = new google.maps.Circle({
 		map: map,
@@ -87,10 +73,24 @@
 		strokeOpacity: .4,
 		strokeWeight: .8
 	    });
+	    circle1 = new google.maps.Circle({
+		map: map,
+		clickable: false,
+		// metres
+		radius: 300,
+		fillColor: '#fff',
+		fillOpacity: .6,
+		strokeColor: '#313131',
+		strokeOpacity: .4,
+		strokeWeight: .8
+	    });
+	    
 	    
 	circle.bindTo('center', markerCenter, 'position');
+	circle1.bindTo('center', markerCenter1, 'position');
 	var
 	    bounds = circle.getBounds(),
+	    bounds1 = circle1.getBounds(),
 	    noteA = jQuery('.bool#a'),
 	    noteB = jQuery('.bool#b');
 
@@ -101,36 +101,28 @@
 	    latLngCenter = new google.maps.LatLng(markerCenter.position.lat(), markerCenter.position.lng());
 	    bounds = circle.getBounds();
 
-	    //noteA.text(bounds.contains(latLngA));
-	    //noteB.text(bounds.contains(latLngB));
-	    noteA.text(google.maps.geometry.spherical.computeDistanceBetween(circle.getCenter(), latLngA) <= circle.getRadius());
-	    noteB.text(google.maps.geometry.spherical.computeDistanceBetween(circle.getCenter(), latLngB) <= circle.getRadius());
+	    var df1 = google.maps.geometry.spherical.computeDistanceBetween(circle.getCenter(), circle1.getCenter()) - circle.getRadius() - circle1.getRadius() <=0;
+	    var df2 = google.maps.geometry.spherical.computeDistanceBetween(circle1.getCenter(), circle.getCenter()) - circle1.getRadius() -  circle.getRadius() <=0;
+	    
+	    var co = google.maps.geometry.spherical.computeDistanceBetween(circle.getCenter(), circle1.getCenter()) - circle.getRadius() - circle1.getRadius();
+	    
+	    noteA.text(df1);
+	    noteB.text(df2);
+	});
+	google.maps.event.addListener(markerCenter1, 'dragend', function() {
+	    latLngCenter = new google.maps.LatLng(markerCenter.position.lat(), markerCenter.position.lng());
+	    bounds1 = circle1.getBounds();
 
-	    //var pointIsInsideCircle = google.maps.geometry.spherical.computeDistanceBetween(circle.getCenter(), latLngA) <= circle.getRadius();
+	    var df1 = google.maps.geometry.spherical.computeDistanceBetween(circle.getCenter(), circle1.getCenter()) - circle.getRadius() - circle1.getRadius() <=0;
+	    var df2 = google.maps.geometry.spherical.computeDistanceBetween(circle1.getCenter(), circle.getCenter()) - circle1.getRadius() - circle.getRadius() <=0;
+	    
+	    noteA.text(df1);
+	    noteB.text(df2);
 	});
 
-	google.maps.event.addListener(markerA, 'dragend', function() {
-	    latLngA = new google.maps.LatLng(markerA.position.lat(), markerA.position.lng());
-	    //noteA.text(bounds.contains(latLngA));
-	    noteA.text(google.maps.geometry.spherical.computeDistanceBetween(circle.getCenter(), latLngA) <= circle.getRadius());
-	});
-
-	google.maps.event.addListener(markerB, 'dragend', function() {
-	    latLngB = new google.maps.LatLng(markerB.position.lat(), markerB.position.lng());
-	    //noteB.text(bounds.contains(latLngB));
-	    noteB.text(google.maps.geometry.spherical.computeDistanceBetween(circle.getCenter(), latLngB) <= circle.getRadius());
-	});
-
+	
 	google.maps.event.addListener(markerCenter, 'click', function() {
 	    infoCenter.open(map, markerCenter);
-	});
-
-	google.maps.event.addListener(markerA, 'click', function() {
-	    infoA.open(map, markerA);
-	});
-
-	google.maps.event.addListener(markerB, 'click', function() {
-	    infoB.open(map, markerB);
 	});
 
 	google.maps.event.addListener(markerCenter, 'drag', function() {
@@ -138,15 +130,16 @@
 	    noteA.html("draggin&hellip;");
 	    noteB.html("draggin&hellip;");
 	});
-
-	google.maps.event.addListener(markerA, 'drag', function() {
-	    infoA.close();
-	    noteA.html("draggin&hellip;");
+	google.maps.event.addListener(markerCenter1, 'click', function() {
+	    infoCenter.open(map, markerCenter1);
 	});
 
-	google.maps.event.addListener(markerB, 'drag', function() {
-	    infoB.close();
+	google.maps.event.addListener(markerCenter1, 'drag', function() {
+	    infoCenter.close();
+	    noteA.html("draggin&hellip;");
 	    noteB.html("draggin&hellip;");
 	});
+
+	
     };
 </script>
